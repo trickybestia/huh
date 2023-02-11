@@ -20,10 +20,11 @@
   ],
   "rules": {
     "prettier/prettier": [
-      2,
+      "error",
       {
         "trailingComma": "none"
       }
-    ]
+    ],
+    "@typescript-eslint/no-non-null-assertion": "off"
   }
 }

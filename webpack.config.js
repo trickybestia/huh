@@ -10,6 +10,14 @@ module.exports = {
         test: /\.ts?$/,
         use: "ts-loader",
         exclude: /node_modules/
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      },
+      {
+        test: /\.glsl$/,
+        type: "asset/source"
       }
     ]
   },
@@ -21,5 +29,6 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     clean: true
   },
-  plugins: [new HtmlWebpackPlugin({ template: './index.html' })]
+  plugins: [new HtmlWebpackPlugin({ template: './index.html' })],
+  devtool: "source-map"
 };
