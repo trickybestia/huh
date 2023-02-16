@@ -1,2 +1,5 @@
-/dist/
-/node_modules/
+/web/dist/
+/web/node_modules/
+
+/logic/target/
+/logic/pkg/
