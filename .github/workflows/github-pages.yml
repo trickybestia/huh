@@ -1,4 +1,5 @@
 name: Github Pages
+on: workflow-dispatch
 permissions:
   contents: write
 jobs:
