@@ -30,7 +30,6 @@ module.exports = {
     clean: true
   },
   plugins: [new HtmlWebpackPlugin({ template: './index.html' })],
-  devtool: "source-map",
   experiments: {
     asyncWebAssembly: true
   }
