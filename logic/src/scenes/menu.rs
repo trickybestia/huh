@@ -11,49 +11,56 @@ use web_sys::WebGlRenderingContext;
 
 #[derive(Clone)]
 enum PolygonID {
-    Button,
+    Button(usize),
 }
 
 enum ButtonState {
-    One,
-    Two,
+    On,
+    Off,
 }
 
 impl ButtonState {
-    pub fn switch(&self) -> Self {
+    pub fn toggle(&self) -> Self {
         match self {
-            ButtonState::One => ButtonState::Two,
-            ButtonState::Two => ButtonState::One,
+            ButtonState::On => ButtonState::Off,
+            ButtonState::Off => ButtonState::On,
         }
     }
 }
 
 pub struct MenuScene {
     raycaster: Raycaster<PolygonID>,
-    button_state: ButtonState,
+    buttons: Vec<(Rectangle<f32>, ButtonState)>,
 }
 
 impl MenuScene {
     pub fn new() -> Self {
         let mut raycaster = Raycaster::new();
 
-        raycaster.add_polygon(
-            Polygon::new(vec![
-                Vector2::new(-0.3, -0.1),
-                Vector2::new(-0.3, 0.1),
-                Vector2::new(0.3, 0.1),
-                Vector2::new(0.3, -0.1),
-            ]),
-            PolygonID::Button,
-            0.0,
-        );
+        let buttons = vec![
+            (Rectangle::new(-0.3, -0.4, 0.6, 0.2), ButtonState::Off),
+            (Rectangle::new(-0.3, -0.1, 0.6, 0.2), ButtonState::Off),
+            (Rectangle::new(-0.3, 0.2, 0.6, 0.2), ButtonState::Off),
+        ];
+
+        for i in 0..buttons.len() {
+            let button = &buttons[i].0;
+
+            raycaster.add_polygon(
+                Polygon::new(vec![
+                    Vector2::new(button.x, button.y),
+                    Vector2::new(button.x, button.y + button.height),
+                    Vector2::new(button.x + button.width, button.y + button.height),
+                    Vector2::new(button.x + button.width, button.y),
+                ]),
+                PolygonID::Button(i),
+                0.0,
+            );
+        }
 
         raycaster.sort();
 
-        Self {
-            raycaster,
-            button_state: ButtonState::One,
-        }
+        Self { raycaster, buttons }
     }
 }
 
@@ -64,17 +71,14 @@ impl Scene for MenuScene {
         gl.clear_color(0.2, 0.2, 0.2, 1.0);
         gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
 
-        let button_color = match self.button_state {
-            ButtonState::One => Color::new(1.0, 1.0, 1.0, 1.0),
-            ButtonState::Two => Color::new(1.0, 0.0, 0.0, 1.0),
-        };
+        for button in &self.buttons {
+            let color = match button.1 {
+                ButtonState::On => Color::new(1.0, 1.0, 1.0, 1.0),
+                ButtonState::Off => Color::new(1.0, 0.0, 0.0, 1.0),
+            };
 
-        renderer.draw_rectangle(
-            &Rectangle::new(-0.3, -0.1, 0.6, 0.2),
-            0.0,
-            &button_color,
-            renderer.rendering_settings(),
-        );
+            renderer.draw_rectangle(&button.0, 0.0, &color, renderer.rendering_settings());
+        }
 
         None
     }
@@ -87,10 +91,8 @@ impl Scene for MenuScene {
             position, world_position
         );
 
-        if let Some(polygon_id) = self.raycaster.raycast(&world_position) {
-            debug!("hit!");
-
-            self.button_state = self.button_state.switch();
+        if let Some(PolygonID::Button(button_id)) = self.raycaster.raycast(&world_position) {
+            self.buttons[button_id].1 = self.buttons[button_id].1.toggle();
         }
     }
 }
