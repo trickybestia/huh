@@ -19,22 +19,33 @@ import("logic")
 
       window.requestAnimationFrame(onRepaint);
     };
+    const onMouseMove = (event: MouseEvent) => {
+      wasm.on_drag(
+        event.clientX,
+        event.clientY,
+        event.movementX,
+        event.movementY
+      );
+    };
 
     window.addEventListener("contextmenu", (event) => event.preventDefault());
     window.addEventListener("resize", () => resizeCanvas());
+    window.addEventListener("click", (event) => {
+      wasm.on_click(event.clientX, event.clientY);
+    });
     window.addEventListener("mousedown", (event) => {
-      if (event.button === 0) {
-        wasm.on_mouse_down(event.clientX, event.clientY);
+      if (event.button === 2) {
+        window.addEventListener("mousemove", onMouseMove);
       }
     });
     window.addEventListener("mouseup", (event) => {
-      if (event.button === 0) {
-        wasm.on_mouse_up(event.clientX, event.clientY);
+      if (event.button === 2) {
+        window.removeEventListener("mousemove", onMouseMove);
       }
     });
-    window.addEventListener("mousemove", (event) =>
-      wasm.on_mouse_move(event.clientX, event.clientY)
-    );
+    window.addEventListener("wheel", (event) => {
+      wasm.on_wheel(event.deltaY);
+    });
 
     resizeCanvas();
 

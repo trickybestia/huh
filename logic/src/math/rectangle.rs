@@ -1,6 +1,6 @@
 use num_traits::Num;
 
-use super::{compare, Vector2};
+use super::{compare, Polygon, Vector2};
 
 #[derive(Debug, Default)]
 pub struct Rectangle<T: Num + Copy> {
@@ -19,6 +19,17 @@ impl<T: Num + Copy> Rectangle<T> {
             height,
         }
     }
+
+    pub fn from_center(center: &Vector2<T>, width: T, height: T) -> Self {
+        let two = T::one() + T::one();
+
+        Self {
+            x: center.x - width / two,
+            y: center.y - height / two,
+            width,
+            height,
+        }
+    }
 }
 
 impl Rectangle<f32> {
@@ -27,5 +38,16 @@ impl Rectangle<f32> {
             && compare(point.y, self.y).is_ge()
             && compare(point.x, self.x + self.width).is_le()
             && compare(point.y, self.y + self.height).is_le()
+    }
+}
+
+impl From<&Rectangle<f32>> for Polygon {
+    fn from(value: &Rectangle<f32>) -> Self {
+        Polygon::new(vec![
+            Vector2::new(value.x, value.y),
+            Vector2::new(value.x, value.y + value.height),
+            Vector2::new(value.x + value.width, value.y + value.height),
+            Vector2::new(value.x + value.width, value.y),
+        ])
     }
 }

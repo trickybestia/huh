@@ -7,23 +7,26 @@ use crate::{
         webgl_renderer::{Color, RenderingSettings},
         WebGlRenderer,
     },
-    math::Rectangle,
+    math::Hexagon,
 };
 
-pub trait DrawRectangleExt {
-    fn draw_rectangle(
+pub trait DrawHexagonExt {
+    fn draw_hexagon(
         &self,
-        rectangle: &Rectangle<f32>,
+        hexagon: &Hexagon,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
     );
 }
 
-impl DrawRectangleExt for WebGlRenderer {
-    fn draw_rectangle(
+const SIN_60_DEG: f32 = 0.8660254037844386;
+const COS_60_DEG: f32 = 0.5;
+
+impl DrawHexagonExt for WebGlRenderer {
+    fn draw_hexagon(
         &self,
-        rectangle: &Rectangle<f32>,
+        hexagon: &Hexagon,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
@@ -43,15 +46,29 @@ impl DrawRectangleExt for WebGlRenderer {
 
         gl.enable_vertex_attrib_array(shader.position());
 
-        let vericies: [f32; 8] = [
-            rectangle.x,
-            rectangle.y,
-            rectangle.x,
-            rectangle.y + rectangle.height,
-            rectangle.x + rectangle.width,
-            rectangle.y,
-            rectangle.x + rectangle.width,
-            rectangle.y + rectangle.height,
+        let center = &hexagon.center;
+        let circle_radius = hexagon.circle_radius;
+
+        let vertical_coordinate_delta = circle_radius * SIN_60_DEG;
+        let horizontal_coordinate_delta = circle_radius * COS_60_DEG;
+
+        let vericies: [f32; 16] = [
+            center.x,
+            center.y,
+            center.x + circle_radius,
+            center.y,
+            center.x + horizontal_coordinate_delta,
+            center.y + vertical_coordinate_delta,
+            center.x - horizontal_coordinate_delta,
+            center.y + vertical_coordinate_delta,
+            center.x - circle_radius,
+            center.y,
+            center.x - horizontal_coordinate_delta,
+            center.y - vertical_coordinate_delta,
+            center.x + horizontal_coordinate_delta,
+            center.y - vertical_coordinate_delta,
+            center.x + circle_radius,
+            center.y,
         ];
 
         let buffer = gl.create_buffer().unwrap();
@@ -77,6 +94,6 @@ impl DrawRectangleExt for WebGlRenderer {
             0,
         );
 
-        gl.draw_arrays(WebGlRenderingContext::TRIANGLE_STRIP, 0, 4);
+        gl.draw_arrays(WebGlRenderingContext::TRIANGLE_FAN, 0, 8);
     }
 }

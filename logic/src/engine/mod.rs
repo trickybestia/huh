@@ -1,4 +1,3 @@
-mod mouse_handler;
 mod raycaster;
 mod scene;
 pub mod shader;
@@ -10,12 +9,9 @@ pub use webgl_renderer::WebGlRenderer;
 
 use crate::math::Vector2;
 
-use self::mouse_handler::MouseHandler;
-
 pub struct Engine {
     renderer: WebGlRenderer,
     scene: Option<Box<dyn Scene>>,
-    mouse_handler: MouseHandler,
 }
 
 impl Engine {
@@ -23,12 +19,11 @@ impl Engine {
         Self {
             renderer,
             scene: None,
-            mouse_handler: MouseHandler::new(),
         }
     }
 
     pub fn set_scene(&mut self, scene: Box<dyn Scene>) {
-        self.mouse_handler.reset();
+        self.renderer.reset_settings();
 
         self.scene = Some(scene);
     }
@@ -43,24 +38,21 @@ impl Engine {
         }
     }
 
-    pub fn on_mouse_down(&mut self, position: &Vector2<i32>) {
+    pub fn on_click(&mut self, position: &Vector2<i32>) {
         if let Some(scene) = &mut self.scene {
-            self.mouse_handler
-                .on_mouse_down(&self.renderer, scene.as_mut(), position);
+            scene.on_click(&mut self.renderer, position);
         }
     }
 
-    pub fn on_mouse_up(&mut self, position: &Vector2<i32>) {
+    pub fn on_drag(&mut self, position: &Vector2<i32>, position_delta: &Vector2<i32>) {
         if let Some(scene) = &mut self.scene {
-            self.mouse_handler
-                .on_mouse_up(&self.renderer, scene.as_mut(), position);
+            scene.on_drag(&mut self.renderer, position, position_delta);
         }
     }
 
-    pub fn on_mouse_move(&mut self, position: &Vector2<i32>) {
+    pub fn on_wheel(&mut self, value: i32) {
         if let Some(scene) = &mut self.scene {
-            self.mouse_handler
-                .on_mouse_move(&self.renderer, scene.as_mut(), position);
+            scene.on_wheel(&mut self.renderer, value);
         }
     }
 }

@@ -22,10 +22,10 @@ where
         }
     }
 
-    pub fn add_polygon(&mut self, polygon: Polygon, id: PolygonID, z_index: f32) {
+    pub fn add_polygon(&mut self, polygon: impl Into<Polygon>, id: PolygonID, z_index: f32) {
         self.polygons.push(PolygonEntry {
             z_index,
-            polygon,
+            polygon: polygon.into(),
             id,
         });
 

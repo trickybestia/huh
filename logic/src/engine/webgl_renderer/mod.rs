@@ -3,12 +3,11 @@ pub mod extensions;
 mod gl_viewport;
 mod rendering_settings;
 
-use log::debug;
 use web_sys::WebGlRenderingContext;
 
 use crate::math::{Rectangle, Vector2};
 
-pub use color::Color;
+pub use color::*;
 pub use rendering_settings::RenderingSettings;
 
 use self::gl_viewport::get_viewport;
@@ -24,11 +23,15 @@ impl WebGlRenderer {
         Self {
             gl,
             viewport: Default::default(),
-            rendering_settings: RenderingSettings {
-                scale: 1.0,
-                ..Default::default()
-            },
+            rendering_settings: Default::default(),
         }
+    }
+
+    pub fn reset_settings(&mut self) {
+        self.rendering_settings = RenderingSettings {
+            aspect_ratio: self.rendering_settings.aspect_ratio,
+            ..Default::default()
+        };
     }
 
     pub fn calculate_rendering_settings(&mut self) {

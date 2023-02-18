@@ -1,5 +1,6 @@
 mod engine;
 mod math;
+mod mouse_handler;
 mod resources;
 mod scenes;
 mod utils;
@@ -39,28 +40,28 @@ pub fn render() {
 }
 
 #[wasm_bindgen]
-pub fn on_mouse_down(x: i32, y: i32) {
+pub fn on_click(x: i32, y: i32) {
     unsafe {
         if let Some(engine) = ENGINE.get_mut() {
-            engine.on_mouse_down(&Vector2::new(x, y));
+            engine.on_click(&Vector2::new(x, y));
         }
     }
 }
 
 #[wasm_bindgen]
-pub fn on_mouse_up(x: i32, y: i32) {
+pub fn on_drag(x: i32, y: i32, movement_x: i32, movement_y: i32) {
     unsafe {
         if let Some(engine) = ENGINE.get_mut() {
-            engine.on_mouse_up(&Vector2::new(x, y));
+            engine.on_drag(&Vector2::new(x, y), &Vector2::new(movement_x, movement_y));
         }
     }
 }
 
 #[wasm_bindgen]
-pub fn on_mouse_move(x: i32, y: i32) {
+pub fn on_wheel(value: i32) {
     unsafe {
         if let Some(engine) = ENGINE.get_mut() {
-            engine.on_mouse_move(&Vector2::new(x, y));
+            engine.on_wheel(value);
         }
     }
 }

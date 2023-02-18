@@ -10,3 +10,16 @@ impl Color {
         Self { r, g, b, a }
     }
 }
+
+pub const WHITE: Color = Color {
+    r: 1.0,
+    g: 1.0,
+    b: 1.0,
+    a: 1.0,
+};
+pub const BROWN: Color = Color {
+    r: 0.545,
+    g: 0.27,
+    b: 0.075,
+    a: 1.0,
+};

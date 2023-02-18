@@ -21,6 +21,10 @@ impl<T: Num + Copy> Vector2<T> {
         Self::new(self.x + other.x, self.y + other.y)
     }
 
+    pub fn multiply(&self, value: T) -> Self {
+        Self::new(self.x * value, self.y * value)
+    }
+
     pub fn multiply_components(&self, x_multiplier: T, y_multiplier: T) -> Self {
         Self::new(self.x * x_multiplier, self.y * y_multiplier)
     }
