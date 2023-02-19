@@ -7,26 +7,23 @@ use crate::{
         webgl_renderer::{Color, RenderingSettings},
         WebGlRenderer,
     },
-    math::Hexagon,
+    math::Polygon,
 };
 
-pub trait DrawHexagonExt {
-    fn draw_hexagon(
+pub trait DrawConvexPolygonExt {
+    fn draw_convex_polygon(
         &self,
-        hexagon: &Hexagon,
+        polygon: &Polygon,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
     );
 }
 
-const SIN_60_DEG: f32 = 0.8660254037844386;
-const COS_60_DEG: f32 = 0.5;
-
-impl DrawHexagonExt for WebGlRenderer {
-    fn draw_hexagon(
+impl DrawConvexPolygonExt for WebGlRenderer {
+    fn draw_convex_polygon(
         &self,
-        hexagon: &Hexagon,
+        polygon: &Polygon,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
@@ -46,37 +43,19 @@ impl DrawHexagonExt for WebGlRenderer {
 
         gl.enable_vertex_attrib_array(shader.position());
 
-        let center = &hexagon.center;
-        let circle_radius = hexagon.circle_radius;
-
-        let vertical_coordinate_delta = circle_radius * SIN_60_DEG;
-        let horizontal_coordinate_delta = circle_radius * COS_60_DEG;
-
-        let vericies: [f32; 16] = [
-            center.x,
-            center.y,
-            center.x + circle_radius,
-            center.y,
-            center.x + horizontal_coordinate_delta,
-            center.y + vertical_coordinate_delta,
-            center.x - horizontal_coordinate_delta,
-            center.y + vertical_coordinate_delta,
-            center.x - circle_radius,
-            center.y,
-            center.x - horizontal_coordinate_delta,
-            center.y - vertical_coordinate_delta,
-            center.x + horizontal_coordinate_delta,
-            center.y - vertical_coordinate_delta,
-            center.x + circle_radius,
-            center.y,
-        ];
-
         let buffer = gl.create_buffer().unwrap();
 
         gl.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(&buffer));
 
+        let mut verticies = Vec::with_capacity(polygon.points().len() * 2);
+
+        for point in polygon.points() {
+            verticies.push(point.x);
+            verticies.push(point.y);
+        }
+
         unsafe {
-            let verticies_float_array = Float32Array::view(&vericies);
+            let verticies_float_array = Float32Array::view(verticies.as_slice());
 
             gl.buffer_data_with_array_buffer_view(
                 WebGlRenderingContext::ARRAY_BUFFER,
@@ -94,6 +73,10 @@ impl DrawHexagonExt for WebGlRenderer {
             0,
         );
 
-        gl.draw_arrays(WebGlRenderingContext::TRIANGLE_FAN, 0, 8);
+        gl.draw_arrays(
+            WebGlRenderingContext::TRIANGLE_FAN,
+            0,
+            polygon.points().len() as i32,
+        );
     }
 }

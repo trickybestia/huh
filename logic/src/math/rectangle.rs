@@ -2,7 +2,7 @@ use num_traits::Num;
 
 use super::{compare, Polygon, Vector2};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Rectangle<T: Num + Copy> {
     pub x: T,
     pub y: T,

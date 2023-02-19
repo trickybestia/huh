@@ -1,5 +1,3 @@
-mod draw_hexagon;
-mod draw_rectangle;
+mod draw_convex_polygon;
 
-pub use draw_hexagon::DrawHexagonExt;
-pub use draw_rectangle::DrawRectangleExt;
+pub use draw_convex_polygon::DrawConvexPolygonExt;

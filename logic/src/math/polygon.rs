@@ -2,6 +2,7 @@ use once_cell::unsync::OnceCell;
 
 use super::{compare, Line, LineSegment, Rectangle, Vector2};
 
+#[derive(Clone)]
 pub struct Polygon {
     points: Vec<Vector2<f32>>,
     bounding_rectangle: OnceCell<Rectangle<f32>>,

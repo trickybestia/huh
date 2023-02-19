@@ -2,7 +2,7 @@ use once_cell::unsync::OnceCell;
 
 use super::{order, Line, Rectangle, Vector2};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LineSegment {
     a: Vector2<f32>,
     b: Vector2<f32>,

@@ -1,7 +1,7 @@
 use super::{compare, Vector2};
 
 /// Line equation: ax + by + c = 0.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Line {
     pub a: f32,
     pub b: f32,

@@ -1,7 +1,6 @@
 use crate::{
-    engine::webgl_renderer::{extensions::DrawRectangleExt, BROWN, WHITE},
-    math::Rectangle,
-    mouse_handler::MouseHandler,
+    engine::webgl_renderer::{extensions::DrawConvexPolygonExt, BROWN, WHITE},
+    math::{Polygon, Rectangle},
 };
 use crate::{
     engine::{Raycaster, Scene, WebGlRenderer},
@@ -24,19 +23,21 @@ enum NextScene {
 
 pub struct MenuScene {
     raycaster: Raycaster<PolygonID>,
-    start_button: Rectangle<f32>,
-    editor_button: Rectangle<f32>,
+    start_button: Polygon,
+    editor_button: Polygon,
     next_scene: Option<NextScene>,
 }
 
 impl MenuScene {
     pub fn new() -> Self {
         let mut raycaster = Raycaster::new();
-        let start_button = Rectangle::from_center(&Vector2::new(0.0, 0.0), 0.6, 0.2);
-        let editor_button = Rectangle::from_center(&Vector2::new(0.0, -0.8), 0.3, 0.1);
+        let start_button: Polygon =
+            (&Rectangle::from_center(&Vector2::new(0.0, 0.0), 0.6, 0.2)).into();
+        let editor_button: Polygon =
+            (&Rectangle::from_center(&Vector2::new(0.0, -0.8), 0.3, 0.1)).into();
 
-        raycaster.add_polygon(&start_button, PolygonID::StartButton, 0.0);
-        raycaster.add_polygon(&editor_button, PolygonID::EditorButton, 0.0);
+        raycaster.add_polygon(start_button.clone(), PolygonID::StartButton, 0.0);
+        raycaster.add_polygon(editor_button.clone(), PolygonID::EditorButton, 0.0);
 
         raycaster.sort();
 
@@ -63,13 +64,13 @@ impl Scene for MenuScene {
         gl.clear_color(0.2, 0.2, 0.2, 1.0);
         gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
 
-        renderer.draw_rectangle(
+        renderer.draw_convex_polygon(
             &self.start_button,
             0.0,
             &WHITE,
             renderer.rendering_settings(),
         );
-        renderer.draw_rectangle(
+        renderer.draw_convex_polygon(
             &self.editor_button,
             0.0,
             &BROWN,
