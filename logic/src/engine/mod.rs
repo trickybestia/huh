@@ -1,9 +1,7 @@
-mod raycaster;
+pub mod raycaster;
 mod scene;
-pub mod shader;
 pub mod webgl_renderer;
 
-pub use raycaster::Raycaster;
 pub use scene::Scene;
 pub use webgl_renderer::WebGlRenderer;
 

@@ -1,9 +1,11 @@
+precision highp float;
+
 attribute vec2 position;
 
-uniform highp float aspect_ratio;
-uniform highp float scale;
-uniform highp float z_coordinate;
-uniform highp vec2 camera_position;
+uniform float aspect_ratio;
+uniform float scale;
+uniform float z_coordinate;
+uniform vec2 camera_position;
 
 void main() {
     vec2 vertex_position = (position - camera_position) * scale;

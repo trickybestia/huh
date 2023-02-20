@@ -1,8 +1,8 @@
 mod engine;
 mod math;
 mod mouse_handler;
-mod resources;
 mod scenes;
+mod textures;
 mod utils;
 
 use engine::{Engine, WebGlRenderer};

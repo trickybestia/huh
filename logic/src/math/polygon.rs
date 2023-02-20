@@ -4,13 +4,15 @@ use super::{compare, Line, LineSegment, Rectangle, Vector2};
 
 #[derive(Clone)]
 pub struct Polygon {
-    points: Vec<Vector2<f32>>,
+    points: Box<[Vector2<f32>]>,
     bounding_rectangle: OnceCell<Rectangle<f32>>,
-    sides: OnceCell<Vec<LineSegment>>,
+    sides: OnceCell<Box<[LineSegment]>>,
 }
 
 impl Polygon {
-    pub fn new(points: Vec<Vector2<f32>>) -> Self {
+    pub fn new(points: impl Into<Box<[Vector2<f32>]>>) -> Self {
+        let points = points.into();
+
         if points.len() < 3 {
             panic!("At least 3 points expected.");
         }
@@ -66,7 +68,7 @@ impl Polygon {
                 *self.points.first().unwrap(),
             ));
 
-            _ = self.sides.set(sides);
+            _ = self.sides.set(sides.into_boxed_slice());
         }
 
         self.sides.get().unwrap()

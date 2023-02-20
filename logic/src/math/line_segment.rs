@@ -11,7 +11,7 @@ pub struct LineSegment {
 }
 
 impl LineSegment {
-    pub fn new(a: Vector2<f32>, b: Vector2<f32>) -> Self {
+    pub const fn new(a: Vector2<f32>, b: Vector2<f32>) -> Self {
         Self {
             a,
             b,

@@ -11,7 +11,7 @@ pub struct Rectangle<T: Num + Copy> {
 }
 
 impl<T: Num + Copy> Rectangle<T> {
-    pub fn new(x: T, y: T, width: T, height: T) -> Self {
+    pub const fn new(x: T, y: T, width: T, height: T) -> Self {
         Self {
             x,
             y,
@@ -43,7 +43,7 @@ impl Rectangle<f32> {
 
 impl From<&Rectangle<f32>> for Polygon {
     fn from(value: &Rectangle<f32>) -> Self {
-        Polygon::new(vec![
+        Polygon::new([
             Vector2::new(value.x, value.y),
             Vector2::new(value.x, value.y + value.height),
             Vector2::new(value.x + value.width, value.y + value.height),

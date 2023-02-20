@@ -6,7 +6,7 @@ pub struct Hexagon {
 }
 
 impl Hexagon {
-    pub fn new(center: Vector2<f32>, circle_radius: f32) -> Self {
+    pub const fn new(center: Vector2<f32>, circle_radius: f32) -> Self {
         Self {
             center,
             circle_radius,
@@ -25,7 +25,7 @@ impl From<&Hexagon> for Polygon {
         let vertical_coordinate_delta = circle_radius * SIN_60_DEG;
         let horizontal_coordinate_delta = circle_radius * COS_60_DEG;
 
-        Polygon::new(vec![
+        Polygon::new([
             Vector2::new(center.x - circle_radius, center.y),
             Vector2::new(
                 center.x - horizontal_coordinate_delta,

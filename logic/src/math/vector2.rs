@@ -9,7 +9,7 @@ pub struct Vector2<T: Num + Copy> {
 }
 
 impl<T: Num + Copy> Vector2<T> {
-    pub fn new(x: T, y: T) -> Self {
+    pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
 
@@ -17,8 +17,16 @@ impl<T: Num + Copy> Vector2<T> {
         Self::new(self.x / value, self.y / value)
     }
 
+    pub fn divide_components(&self, x_divider: T, y_divider: T) -> Self {
+        Self::new(self.x / x_divider, self.y / y_divider)
+    }
+
     pub fn add_vector(&self, other: &Self) -> Self {
         Self::new(self.x + other.x, self.y + other.y)
+    }
+
+    pub fn subtract_vector(&self, other: &Self) -> Self {
+        Self::new(self.x - other.x, self.y - other.y)
     }
 
     pub fn multiply(&self, value: T) -> Self {

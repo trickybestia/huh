@@ -1,8 +1,4 @@
-mod simple_shader;
-
 use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
-
-pub use simple_shader::SimpleShader;
 
 #[macro_export]
 macro_rules! declare_shader {
@@ -11,7 +7,7 @@ macro_rules! declare_shader {
             use once_cell::unsync::OnceCell;
             use web_sys::{WebGlProgram, WebGlUniformLocation, WebGlRenderingContext};
 
-            use crate::engine::shader::compile_shader_program;
+            use crate::engine::webgl_renderer::shader::compile_shader_program;
 
             static mut INSTANCE: OnceCell<$program_name> = OnceCell::new();
 
@@ -29,7 +25,7 @@ macro_rules! declare_shader {
                 fn new(gl: &WebGlRenderingContext) -> Self {
                     let shader_program = compile_shader_program(gl, $vertex_shader_source, $fragment_shader_source);
 
-                    Self {
+                    let shader = Self {
                         $(
                             $attribute_name: gl.get_attrib_location(&shader_program, stringify!($attribute_name)) as u32,
                         )*
@@ -37,7 +33,13 @@ macro_rules! declare_shader {
                             $uniform_name: gl.get_uniform_location(&shader_program, stringify!($uniform_name)).unwrap(),
                         )*
                         shader_program
-                    }
+                    };
+
+                    $(
+                        gl.enable_vertex_attrib_array(shader.$attribute_name);
+                    )*
+
+                    shader
                 }
 
                 pub fn instance(gl: &WebGlRenderingContext) -> &'static Self {

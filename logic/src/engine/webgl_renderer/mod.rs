@@ -2,6 +2,9 @@ mod color;
 pub mod extensions;
 mod gl_viewport;
 mod rendering_settings;
+mod shader;
+mod shaders;
+mod texture;
 
 use web_sys::WebGlRenderingContext;
 
@@ -9,6 +12,7 @@ use crate::math::{Rectangle, Vector2};
 
 pub use color::*;
 pub use rendering_settings::RenderingSettings;
+pub use texture::Texture;
 
 use self::gl_viewport::get_viewport;
 
@@ -20,6 +24,12 @@ pub struct WebGlRenderer {
 
 impl WebGlRenderer {
     pub fn new(gl: WebGlRenderingContext) -> Self {
+        gl.enable(WebGlRenderingContext::BLEND);
+        gl.blend_func(
+            WebGlRenderingContext::SRC_ALPHA,
+            WebGlRenderingContext::DST_ALPHA,
+        );
+
         Self {
             gl,
             viewport: Default::default(),
