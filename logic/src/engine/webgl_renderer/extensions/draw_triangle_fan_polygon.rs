@@ -1,29 +1,26 @@
 use web_sys::WebGlRenderingContext;
 
-use crate::{
-    engine::{
-        webgl_renderer::{shaders::PolygonShader, Color, RenderingSettings},
-        WebGlRenderer,
+use crate::engine::{
+    webgl_renderer::{
+        shaders::PolygonShader, vec2_webgl_buffer::Vec2WebGlBuffer, Color, RenderingSettings,
     },
-    math::Polygon,
+    WebGlRenderer,
 };
 
-use super::utils::bind_float32_vec2_buffer;
-
-pub trait DrawConvexPolygonExt {
-    fn draw_convex_polygon(
+pub trait DrawTriangleFanPolygonExt {
+    fn draw_triangle_fan_polygon(
         &self,
-        polygon: &Polygon,
+        vertex_buffer: &Vec2WebGlBuffer,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
     );
 }
 
-impl DrawConvexPolygonExt for WebGlRenderer {
-    fn draw_convex_polygon(
+impl DrawTriangleFanPolygonExt for WebGlRenderer {
+    fn draw_triangle_fan_polygon(
         &self,
-        polygon: &Polygon,
+        vertex_buffer: &Vec2WebGlBuffer,
         z_coordinate: f32,
         color: &Color,
         settings: &RenderingSettings,
@@ -41,22 +38,12 @@ impl DrawConvexPolygonExt for WebGlRenderer {
         );
         gl.uniform4f(Some(shader.color()), color.r, color.g, color.b, color.a);
 
-        let mut verticies = Vec::with_capacity(polygon.points().len() * 2);
-
-        for point in polygon.points() {
-            verticies.push(point.x);
-            verticies.push(point.y);
-        }
-
-        let verticies_buffer =
-            bind_float32_vec2_buffer(gl, verticies.as_slice(), shader.position());
+        vertex_buffer.bind_to_attribute(gl, shader.position());
 
         gl.draw_arrays(
             WebGlRenderingContext::TRIANGLE_FAN,
             0,
-            polygon.points().len() as i32,
+            vertex_buffer.points_count() as i32,
         );
-
-        drop(verticies_buffer);
     }
 }

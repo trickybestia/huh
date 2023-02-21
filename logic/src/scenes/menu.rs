@@ -1,24 +1,20 @@
 use crate::{
     engine::{
-        raycaster::{Raycaster, TextureRaycastTarget},
-        webgl_renderer::{
-            extensions::{DrawConvexPolygonExt, DrawTextureExt},
-            BROWN, WHITE,
-        },
+        game_objects::{ClickablePolygon, ClickableTexture},
+        raycaster::Raycaster,
+        webgl_renderer::{BROWN, WHITE},
+        GameObject, Scene, WebGlRenderer,
     },
-    math::{Polygon, Rectangle},
+    global,
+    math::{Rectangle, Vector2},
     mouse_handler::MouseHandler,
     textures,
-};
-use crate::{
-    engine::{Scene, WebGlRenderer},
-    math::Vector2,
 };
 use web_sys::WebGlRenderingContext;
 
 use super::{EditorScene, GameScene};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 enum TargetID {
     StartButton,
     EditorButton,
@@ -37,9 +33,10 @@ enum TestButtonState {
 
 pub struct MenuScene {
     raycaster: Raycaster<TargetID>,
-    start_button: Polygon,
-    editor_button: Polygon,
-    test_button: Rectangle<f32>,
+    test_button_bounding_rectangle: Rectangle<f32>,
+    start_button: ClickablePolygon<TargetID>,
+    editor_button: ClickablePolygon<TargetID>,
+    test_button: Option<Box<dyn GameObject>>,
     next_scene: Option<NextScene>,
     test_button_state: TestButtonState,
 }
@@ -47,48 +44,56 @@ pub struct MenuScene {
 impl MenuScene {
     pub fn new() -> Self {
         let raycaster = Raycaster::new();
-        let start_button: Polygon =
-            (&Rectangle::from_center(&Vector2::new(0.0, 0.0), 0.6, 0.2)).into();
-        let editor_button: Polygon =
-            (&Rectangle::from_center(&Vector2::new(0.0, -0.8), 0.3, 0.1)).into();
-        let test_button = Rectangle::from_center(&Vector2::new(0.5, 0.5), 0.5, 0.5);
+
+        let start_button = ClickablePolygon::new(
+            &Rectangle::from_center(0.0, 0.0, 0.6, 0.2),
+            TargetID::StartButton,
+            raycaster.clone(),
+            0.0,
+            WHITE,
+        );
+        let editor_button = ClickablePolygon::new(
+            &Rectangle::from_center(0.0, -0.8, 0.3, 0.1),
+            TargetID::EditorButton,
+            raycaster.clone(),
+            0.0,
+            BROWN,
+        );
+        let test_button_bounding_rectangle = Rectangle::from_center(0.5, 0.5, 0.5, 0.5);
 
         let mut result = Self {
             raycaster,
             start_button,
             editor_button,
-            test_button,
+            test_button: None,
+            test_button_bounding_rectangle,
             next_scene: None,
             test_button_state: TestButtonState::Transparent,
         };
 
-        result.add_raycast_targets();
-
-        result.raycaster.sort();
+        result.update_test_button();
 
         result
     }
 
-    fn add_raycast_targets(&mut self) {
-        self.raycaster
-            .add_target(self.start_button.clone(), TargetID::StartButton, 0.0);
-        self.raycaster
-            .add_target(self.editor_button.clone(), TargetID::EditorButton, 0.0);
-
-        match self.test_button_state {
-            TestButtonState::Transparent => unsafe {
-                self.raycaster.add_target(
-                    TextureRaycastTarget::new(self.test_button.clone(), &textures::TRICKYBESTIA),
-                    TargetID::TestButton,
-                    0.0,
-                );
-            },
-            TestButtonState::Opaque => self.raycaster.add_target(
-                Polygon::from(&self.test_button),
+    fn update_test_button(&mut self) {
+        self.test_button = None;
+        self.test_button = Some(match self.test_button_state {
+            TestButtonState::Transparent => Box::new(ClickableTexture::new(
+                self.test_button_bounding_rectangle.clone(),
                 TargetID::TestButton,
+                self.raycaster.clone(),
+                global!(&textures::TRICKYBESTIA),
                 0.0,
-            ),
-        }
+            )),
+            TestButtonState::Opaque => Box::new(ClickablePolygon::new(
+                &self.test_button_bounding_rectangle,
+                TargetID::TestButton,
+                self.raycaster.clone(),
+                0.0,
+                WHITE,
+            )),
+        });
     }
 }
 
@@ -106,34 +111,9 @@ impl Scene for MenuScene {
         gl.clear_color(0.2, 0.2, 0.2, 1.0);
         gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
 
-        renderer.draw_convex_polygon(
-            &self.start_button,
-            0.0,
-            &WHITE,
-            renderer.rendering_settings(),
-        );
-        renderer.draw_convex_polygon(
-            &self.editor_button,
-            0.0,
-            &BROWN,
-            renderer.rendering_settings(),
-        );
-        match self.test_button_state {
-            TestButtonState::Transparent => unsafe {
-                renderer.draw_texture(
-                    &self.test_button,
-                    0.0,
-                    &textures::TRICKYBESTIA,
-                    renderer.rendering_settings(),
-                );
-            },
-            TestButtonState::Opaque => renderer.draw_convex_polygon(
-                &(&self.test_button).into(),
-                0.0,
-                &WHITE,
-                renderer.rendering_settings(),
-            ),
-        }
+        self.start_button.render(renderer);
+        self.editor_button.render(renderer);
+        self.test_button.as_mut().unwrap().render(renderer);
 
         None
     }
@@ -151,11 +131,7 @@ impl Scene for MenuScene {
                         TestButtonState::Opaque => TestButtonState::Transparent,
                     };
 
-                    self.raycaster.clear();
-
-                    self.add_raycast_targets();
-
-                    self.raycaster.sort();
+                    self.update_test_button();
                 }
             }
         }

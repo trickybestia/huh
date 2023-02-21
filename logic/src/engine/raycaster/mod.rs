@@ -1,6 +1,8 @@
 mod polygon_raycast_target;
 mod texture_raycast_target;
 
+use std::{cell::RefCell, collections::HashMap, hash::Hash, rc::Rc};
+
 use crate::math::{compare, Vector2};
 
 pub use texture_raycast_target::TextureRaycastTarget;
@@ -9,59 +11,89 @@ pub trait RaycastTarget {
     fn contains_point(&self, point: &Vector2<f32>) -> bool;
 }
 
-struct TargetEntry<TargetID> {
+pub trait RaycastTargetID: Eq + Hash + Clone {}
+
+impl<T> RaycastTargetID for T where T: Eq + Hash + Clone {}
+
+struct TargetEntry {
     pub z_index: f32,
-    pub target: Box<dyn RaycastTarget>,
-    pub id: TargetID,
+    pub target: Rc<dyn RaycastTarget>,
 }
 
-pub struct Raycaster<TargetID> {
-    targets: Vec<TargetEntry<TargetID>>,
-    dirty: bool,
-}
-
-impl<TargetID> Raycaster<TargetID>
+struct RaycasterInternal<TargetID>
 where
-    TargetID: Clone,
+    TargetID: RaycastTargetID,
+{
+    targets: HashMap<TargetID, TargetEntry>,
+}
+
+impl<TargetID> RaycasterInternal<TargetID>
+where
+    TargetID: RaycastTargetID,
 {
     pub fn new() -> Self {
         Self {
-            targets: Vec::new(),
-            dirty: false,
+            targets: HashMap::new(),
         }
     }
 
-    pub fn add_target(&mut self, target: impl RaycastTarget + 'static, id: TargetID, z_index: f32) {
-        self.targets.push(TargetEntry {
-            z_index,
-            target: Box::new(target),
-            id,
-        });
-
-        self.dirty = true;
+    pub fn add_target(&mut self, target: Rc<dyn RaycastTarget>, id: TargetID, z_index: f32) {
+        self.targets.insert(id, TargetEntry { z_index, target });
     }
 
-    pub fn sort(&mut self) {
-        self.targets.sort_by(|a, b| compare(a.z_index, b.z_index));
-
-        self.dirty = false;
+    pub fn remove_target(&mut self, id: &TargetID) {
+        self.targets.remove(id);
     }
 
     pub fn raycast(&self, point: &Vector2<f32>) -> Option<TargetID> {
-        if self.dirty {
-            panic!("sort() must be called between end of filling Raycaster with polygons and calling containing_polygon()");
-        }
+        let mut target = None;
 
-        for target in &self.targets {
-            if target.target.contains_point(point) {
-                return Some(target.id.clone());
+        for (id, entry) in &self.targets {
+            if entry.target.contains_point(point) {
+                if let Some((_, previous_z_index)) = &target {
+                    if compare(entry.z_index, *previous_z_index).is_gt() {
+                        target = Some((id, entry.z_index));
+                    }
+                } else {
+                    target = Some((id, entry.z_index));
+                }
             }
         }
 
-        None
+        target.map(|(id, _)| id.clone())
     }
 
     pub fn clear(&mut self) {
         self.targets.clear();
+    }
+}
+
+#[derive(Clone)]
+pub struct Raycaster<TargetID>(Rc<RefCell<RaycasterInternal<TargetID>>>)
+where
+    TargetID: RaycastTargetID;
+
+impl<TargetID> Raycaster<TargetID>
+where
+    TargetID: RaycastTargetID,
+{
+    pub fn new() -> Self {
+        Self(Rc::new(RefCell::new(RaycasterInternal::new())))
+    }
+
+    pub fn add_target(&self, target: Rc<dyn RaycastTarget>, id: TargetID, z_index: f32) {
+        self.0.borrow_mut().add_target(target, id, z_index);
+    }
+
+    pub fn remove_target(&self, id: &TargetID) {
+        self.0.borrow_mut().remove_target(id);
+    }
+
+    pub fn raycast(&self, point: &Vector2<f32>) -> Option<TargetID> {
+        self.0.borrow().raycast(point)
+    }
+
+    pub fn clear(&self) {
+        self.0.borrow_mut().clear();
     }
 }

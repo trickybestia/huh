@@ -1,7 +1,10 @@
+mod game_object;
+pub mod game_objects;
 pub mod raycaster;
 mod scene;
 pub mod webgl_renderer;
 
+pub use game_object::GameObject;
 pub use scene::Scene;
 pub use webgl_renderer::WebGlRenderer;
 

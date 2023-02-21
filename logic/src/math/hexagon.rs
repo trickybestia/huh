@@ -14,7 +14,7 @@ impl Hexagon {
     }
 }
 
-const SIN_60_DEG: f32 = 0.8660254037844386;
+const SIN_60_DEG: f32 = 0.8660254;
 const COS_60_DEG: f32 = 0.5;
 
 impl From<&Hexagon> for Polygon {

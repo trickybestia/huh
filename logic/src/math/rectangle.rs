@@ -20,12 +20,12 @@ impl<T: Num + Copy> Rectangle<T> {
         }
     }
 
-    pub fn from_center(center: &Vector2<T>, width: T, height: T) -> Self {
+    pub fn from_center(center_x: T, center_y: T, width: T, height: T) -> Self {
         let two = T::one() + T::one();
 
         Self {
-            x: center.x - width / two,
-            y: center.y - height / two,
+            x: center_x - width / two,
+            y: center_y - height / two,
             width,
             height,
         }

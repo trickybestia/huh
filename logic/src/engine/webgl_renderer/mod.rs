@@ -5,6 +5,7 @@ mod rendering_settings;
 mod shader;
 mod shaders;
 mod texture;
+pub mod vec2_webgl_buffer;
 
 use web_sys::WebGlRenderingContext;
 
